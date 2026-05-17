@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Стим Плюс</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <header>
+    <b>Стим Плюс</b>
+  </header>
+
+  <main>
+    <div id="filters">
+      <button onclick="filter('all')" class="active">Все</button>
+      <button onclick="filter('gift')">Подарок</button>
+      <button onclick="filter('account')">Аккаунт</button>
+    </div>
+    <div id="list"></div>
+    <p id="empty" hidden>Игр пока нет.</p>
+  </main>
+
+  <div id="modal" hidden>
+    <div id="modal-box">
+      <button onclick="closeModal()">✕</button>
+      <h2 id="m-title"></h2>
+      <p id="m-type"></p>
+      <p id="m-desc"></p>
+      <p><b id="m-price"></b> <s id="m-steam"></s></p>
+    </div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>

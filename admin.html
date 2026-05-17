@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Стим Плюс</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <div id="login-screen">
+    <input type="password" id="pass" placeholder="Пароль" onkeydown="if(event.key==='Enter')login()" />
+    <button onclick="login()">Войти</button>
+    <p id="login-err"></p>
+  </div>
+
+  <div id="admin-screen" hidden>
+    <header>
+      <b>Стим Плюс</b>
+      <a href="index.html">Сайт</a>
+    </header>
+
+    <main>
+      <h3>Добавить игру</h3>
+      <div id="form">
+        <input  type="text"   id="a-title" placeholder="Название *" />
+        <select id="a-type">
+          <option value="gift">Подарок</option>
+          <option value="account">Аккаунт</option>
+        </select>
+        <input  type="number" id="a-price" placeholder="Наша цена ₽ *" />
+        <input  type="number" id="a-steam" placeholder="Цена в Steam ₽" />
+        <button onclick="addGame()">Добавить</button>
+        <p id="form-err"></p>
+      </div>
+
+      <h3>Игры</h3>
+      <div id="admin-list"></div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+  <script>
+    const PASS = "123456";
+
+    function login() {
+      if (document.getElementById("pass").value === PASS) {
+        document.getElementById("login-screen").hidden = true;
+        document.getElementById("admin-screen").hidden = false;
+        renderAdminList();
+      } else {
+        document.getElementById("login-err").textContent = "Неверный пароль";
+      }
+    }
+
+    async function addGame() {
+      const title = document.getElementById("a-title").value.trim();
+      const price = parseFloat(document.getElementById("a-price").value);
+      const err   = document.getElementById("form-err");
+      if (!title) { err.textContent = "Введи название"; return; }
+      if (!price)  { err.textContent = "Введи цену"; return; }
+      err.textContent = "";
+
+      const btn = document.querySelector("#form button");
+      btn.disabled = true;
+      btn.textContent = "Сохранение…";
+
+      try {
+        await saveGame({
+          id:    uid(),
+          title,
+          type:  document.getElementById("a-type").value,
+          price,
+          steam: parseFloat(document.getElementById("a-steam").value) || null,
+          description: ""
+        });
+        ["a-title","a-price","a-steam"].forEach(id => document.getElementById(id).value = "");
+        await renderAdminList();
+      } catch(e) {
+        err.textContent = "Ошибка: " + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Добавить";
+      }
+    }
+
+    async function deleteGame(id) {
+      if (!confirm("Удалить?")) return;
+      try {
+        await deleteGameById(id);
+        await renderAdminList();
+      } catch(e) {
+        alert("Ошибка удаления: " + e.message);
+      }
+    }
+
+    async function renderAdminList() {
+      const list = document.getElementById("admin-list");
+      list.innerHTML = "<p style='color:#aaa'>Загрузка…</p>";
+      const games = await loadGames();
+      list.innerHTML = games.length === 0 ? "<p>Игр нет.</p>" : games.map(g => `
+        <div class="admin-row">
+          <span>${g.title} <small>(${g.type === "gift" ? "Подарок" : "Аккаунт"} · ${g.price} ₽)</small></span>
+          <button onclick="deleteGame('${g.id}')">Удалить</button>
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>
